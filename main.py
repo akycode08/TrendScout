@@ -8,7 +8,7 @@ import asyncio
 import sys
 from config import get_settings
 from database.db import init_db
-from data_collectors import GoogleTrendsCollector, TikTokCollector, RedditCollector, YouTubeCollector
+from data_collectors import GoogleTrendsCollector, TikTokCollector, InstagramCollector, RedditCollector, YouTubeCollector
 from analyzers import DataFilter, AIAnalyzer, TrendScorer, TrendFinder
 
 
@@ -39,7 +39,7 @@ async def run_pipeline(vertical: str = "coffee", location: str = None):
         RedditCollector(),        # Бесплатно, требует Reddit API ключи
         YouTubeCollector(),       # Бесплатно, требует YouTube API ключ
         TikTokCollector(),        # Требует APIFY_API_KEY (платно)
-        # TODO: InstagramCollector(),  # Требует APIFY_API_KEY (платно)
+        InstagramCollector(),     # Требует APIFY_API_KEY (платно)
     ]
     
     raw_data = []

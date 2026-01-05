@@ -19,6 +19,7 @@ from anthropic import Anthropic
 from anthropic import APIError, RateLimitError
 
 from config import get_settings
+from admin.usage_tracker import get_usage_tracker
 
 
 # Промпт для анализа трендов (из спецификации)
@@ -193,6 +194,16 @@ class AIAnalyzer:
                 
                 # Извлекаем текст ответа
                 response_text = message.content[0].text
+                
+                # Отслеживаем использование Claude API
+                tracker = get_usage_tracker()
+                input_tokens = message.usage.input_tokens
+                output_tokens = message.usage.output_tokens
+                tracker.track_claude_request(
+                    input_tokens=input_tokens,
+                    output_tokens=output_tokens,
+                    model="claude-sonnet-4-20250514"
+                )
                 
                 # Парсим JSON ответ
                 try:

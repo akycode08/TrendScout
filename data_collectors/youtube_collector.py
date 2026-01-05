@@ -16,6 +16,7 @@ from googleapiclient.errors import HttpError
 
 from data_collectors.base_collector import BaseCollector
 from config import get_settings, get_vertical_keywords
+from admin.usage_tracker import get_usage_tracker
 
 
 class YouTubeCollector(BaseCollector):
@@ -111,6 +112,10 @@ class YouTubeCollector(BaseCollector):
                 
                 response = request.execute()
                 
+                # Отслеживаем использование YouTube API (search = 100 quota units)
+                tracker = get_usage_tracker()
+                tracker.track_youtube_request(quota_units=100)
+                
                 # Получаем детальную информацию о каждом видео
                 video_ids = [item['id']['videoId'] for item in response.get('items', [])]
                 
@@ -121,6 +126,9 @@ class YouTubeCollector(BaseCollector):
                         id=','.join(video_ids)
                     )
                     videos_response = videos_request.execute()
+                    
+                    # Отслеживаем использование YouTube API (videos.list = 1 quota unit)
+                    tracker.track_youtube_request(quota_units=1)
                     
                     # Обрабатываем каждое видео
                     for video in videos_response.get('items', []):

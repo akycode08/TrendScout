@@ -16,6 +16,7 @@ from pytrends.request import TrendReq
 from data_collectors.base_collector import BaseCollector
 from config import get_vertical_keywords
 from config.geography import location_to_geo_code
+from admin.usage_tracker import get_usage_tracker
 
 
 class GoogleTrendsCollector(BaseCollector):
@@ -120,6 +121,10 @@ class GoogleTrendsCollector(BaseCollector):
                     timeframe='now 2-d', # Последние 2 дня (для свежих трендов)
                     geo=geo_code        # География (например: "US-IL" для Иллинойса, "" = весь мир)
                 )
+                
+                # Отслеживаем запрос к Google Trends
+                tracker = get_usage_tracker()
+                tracker.track_google_trends_request()
                 
                 # Получаем данные об интересе за время
                 try:

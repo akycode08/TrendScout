@@ -12,8 +12,9 @@
 from .base_collector import BaseCollector
 from .google_trends_collector import GoogleTrendsCollector
 from .tiktok_collector import TikTokCollector
+from .instagram_collector import InstagramCollector
 from .reddit_collector import RedditCollector
 from .youtube_collector import YouTubeCollector
 
-__all__ = ['BaseCollector', 'GoogleTrendsCollector', 'TikTokCollector', 'RedditCollector', 'YouTubeCollector']
+__all__ = ['BaseCollector', 'GoogleTrendsCollector', 'TikTokCollector', 'InstagramCollector', 'RedditCollector', 'YouTubeCollector']
 

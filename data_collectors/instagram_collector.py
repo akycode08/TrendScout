@@ -1,7 +1,7 @@
 """
-TikTok коллектор
+Instagram коллектор
 
-Собирает данные о трендах из TikTok через Apify API.
+Собирает данные о трендах из Instagram через Apify API.
 Apify - это платформа для веб-скрапинга, которая предоставляет готовые акторы
 для сбора данных с различных платформ.
 
@@ -18,12 +18,12 @@ from config import get_settings, get_vertical_keywords
 from admin.usage_tracker import get_usage_tracker
 
 
-class TikTokCollector(BaseCollector):
+class InstagramCollector(BaseCollector):
     """
-    Коллектор для TikTok
+    Коллектор для Instagram
     
-    Собирает посты из TikTok по хештегам, связанным с вертикалью бизнеса.
-    Использует Apify актор "bebity/tiktok-scraper" для сбора данных.
+    Собирает посты из Instagram по хештегам, связанным с вертикалью бизнеса.
+    Использует Apify актор "apify/instagram-scraper" для сбора данных.
     """
     
     def __init__(self):
@@ -38,7 +38,7 @@ class TikTokCollector(BaseCollector):
         # Проверяем наличие ключа
         if not settings.apify_api_key:
             self.client = None
-            print("⚠️  Apify API ключ не настроен. TikTok коллектор будет пропущен.")
+            print("⚠️  Apify API ключ не настроен. Instagram коллектор будет пропущен.")
         else:
             # ApifyClient - это синхронная библиотека, но мы обернем её в async
             self.client = ApifyClient(settings.apify_api_key)
@@ -46,7 +46,7 @@ class TikTokCollector(BaseCollector):
     
     async def collect(self, vertical: str, **kwargs) -> List[Dict[str, Any]]:
         """
-        Собрать данные из TikTok
+        Собрать данные из Instagram
         
         Args:
             vertical: Тип бизнеса (coffee, restaurant, etc.)
@@ -56,10 +56,10 @@ class TikTokCollector(BaseCollector):
             List[Dict]: Список постов в нормализованном формате
         """
         if self.client is None:
-            print("⚠️  TikTok коллектор пропущен (нет Apify API ключа)")
+            print("⚠️  Instagram коллектор пропущен (нет Apify API ключа)")
             return []
         
-        print(f"📱 Сбор данных из TikTok для вертикали: {vertical}")
+        print(f"📸 Сбор данных из Instagram для вертикали: {vertical}")
         
         # Получаем ключевые слова для этой вертикали
         keywords = get_vertical_keywords(vertical)
@@ -75,7 +75,7 @@ class TikTokCollector(BaseCollector):
             keywords
         )
         
-        print(f"✅ Собрано {len(results)} постов из TikTok")
+        print(f"✅ Собрано {len(results)} постов из Instagram")
         return results
     
     def _collect_sync(self, keywords: List[str]) -> List[Dict[str, Any]]:
@@ -97,19 +97,15 @@ class TikTokCollector(BaseCollector):
             try:
                 print(f"   Поиск по хештегу: #{keyword}")
                 
-                # Запускаем Apify актор для сбора данных из TikTok
-                # Актор "clockworks/tiktok-scraper" - популярный и надежный скрипт для TikTok
-                # Альтернатива: "bebity/tiktok-scraper"
+                # Запускаем Apify актор для сбора данных из Instagram
+                # Актор "apify/instagram-scraper" - популярный скрипт для Instagram
+                # Альтернативы: "bebity/instagram-scraper", "apify/instagram-scraper"
                 
-                # Вычисляем дату 2 дня назад для фильтрации свежих постов
-                from datetime import timedelta
-                two_days_ago = (datetime.now() - timedelta(days=2)).timestamp()
-                
-                run = self.client.actor("clockworks/tiktok-scraper").call(
+                run = self.client.actor("apify/instagram-scraper").call(
                     run_input={
                         "hashtags": [keyword],  # Хештег без # (актор сам добавит)
-                        "resultsPerPage": self.max_posts_per_keyword,  # Сколько постов получить
-                        "maxProfilesPerQuery": 1,  # Ограничение профилей
+                        "resultsLimit": self.max_posts_per_keyword,  # Сколько постов получить
+                        "searchType": "hashtag",  # Поиск по хештегам
                         # Примечание: фильтрация по дате будет в DataFilter
                     }
                 )
@@ -125,27 +121,24 @@ class TikTokCollector(BaseCollector):
                 # Получаем результаты из dataset
                 items_collected = 0
                 for item in self.client.dataset(dataset_id).iterate_items():
-                    # Получаем ссылку на видео TikTok
-                    video_url = item.get('webVideoUrl') or item.get('url') or item.get('videoUrl')
+                    # Получаем ссылку на пост Instagram
+                    post_url = item.get('url') or item.get('shortCode')
                     
-                    # Если нет прямой ссылки, формируем из ID и username
-                    if not video_url:
-                        video_id = item.get('id', '')
-                        username = item.get('authorMeta', {}).get('name', 'user')
-                        if video_id:
-                            video_url = f"https://www.tiktok.com/@{username}/video/{video_id}"
+                    # Если нет прямой ссылки, формируем из shortCode
+                    if not post_url and item.get('shortCode'):
+                        post_url = f"https://www.instagram.com/p/{item.get('shortCode')}/"
                     
                     # Нормализуем данные в единый формат
                     normalized = self.normalize_data({
-                        'id': item.get('id', ''),
-                        'text': item.get('text', item.get('description', '')),
-                        'webVideoUrl': video_url,  # Используем правильную ссылку
-                        'playCount': item.get('playCount', item.get('views', 0)),
-                        'diggCount': item.get('diggCount', item.get('likes', 0)),
-                        'commentCount': item.get('commentCount', 0),
+                        'id': item.get('id', item.get('shortCode', '')),
+                        'text': item.get('caption', item.get('text', '')),
+                        'url': post_url,
+                        'views': item.get('videoViewCount', item.get('playCount', 0)),
+                        'likes': item.get('likesCount', item.get('likeCount', 0)),
+                        'commentCount': item.get('commentsCount', item.get('commentCount', 0)),
                         'shareCount': item.get('shareCount', 0),
-                        'createTime': self._parse_tiktok_time(item.get('createTime', item.get('timestamp', None))),
-                        'posted_at': self._parse_tiktok_time(item.get('createTime', item.get('timestamp', None)))
+                        'timestamp': item.get('timestamp', item.get('takenAtTimestamp', None)),
+                        'posted_at': self._parse_instagram_time(item.get('timestamp', item.get('takenAtTimestamp', None)))
                     })
                     
                     results.append(normalized)
@@ -162,7 +155,7 @@ class TikTokCollector(BaseCollector):
                 # Примерная стоимость: ~$0.01-0.05 за запуск актора
                 estimated_cost = 0.03  # Средняя стоимость
                 tracker.track_apify_run(
-                    actor_name="clockworks/tiktok-scraper",
+                    actor_name="apify/instagram-scraper",
                     cost_usd=estimated_cost,
                     items_collected=items_collected
                 )
@@ -178,17 +171,17 @@ class TikTokCollector(BaseCollector):
         
         return results
     
-    def _parse_tiktok_time(self, timestamp: Any) -> datetime:
+    def _parse_instagram_time(self, timestamp: Any) -> datetime:
         """
-        Парсить временную метку TikTok в datetime
+        Парсить временную метку Instagram в datetime
         
-        TikTok может возвращать время в разных форматах:
+        Instagram может возвращать время в разных форматах:
         - Unix timestamp (число)
         - ISO строка
         - None
         
         Args:
-            timestamp: Временная метка от TikTok
+            timestamp: Временная метка от Instagram
             
         Returns:
             datetime: Объект datetime или текущее время, если не удалось распарсить

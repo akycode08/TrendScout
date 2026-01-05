@@ -23,22 +23,17 @@ from pathlib import Path
 # Добавляем путь к проекту
 sys.path.insert(0, str(Path(__file__).parent))
 
-from data_collectors import GoogleTrendsCollector, TikTokCollector, RedditCollector, YouTubeCollector
+from data_collectors import GoogleTrendsCollector, TikTokCollector, InstagramCollector, RedditCollector, YouTubeCollector
 from analyzers import DataFilter, AIAnalyzer, TrendScorer, TrendFinder
 from config import get_settings
 
 
-# Настройка страницы
-st.set_page_config(
-    page_title="TrendScout Dashboard",
-    page_icon="🔥",
-    layout="wide",
-    initial_sidebar_state="expanded"
-)
-
-# Заголовок
-st.title("🔥 TrendScout - Визуализация трендов")
-st.markdown("---")
+def show_dashboard():
+    """Показать dashboard страницу"""
+    
+    # Заголовок
+    st.title("🔥 TrendScout - Визуализация трендов")
+    st.markdown("---")
 
 # Боковая панель с настройками
 st.sidebar.header("⚙️ Настройки")
@@ -83,6 +78,7 @@ async def run_pipeline_async(vertical: str, use_ai: bool, location: str = None, 
         RedditCollector(),        # Бесплатно (требует Reddit API ключи)
         YouTubeCollector(),       # Бесплатно (требует YouTube API ключ)
         TikTokCollector(),        # Платно (требует APIFY_API_KEY)
+        InstagramCollector(),     # Платно (требует APIFY_API_KEY)
     ]
     
     raw_data = []
@@ -504,14 +500,26 @@ else:
     """)
 
 
-# Футер
-st.markdown("---")
-st.markdown(
-    """
-    <div style='text-align: center; color: gray;'>
-        <p>TrendScout Dashboard | Создано для визуализации трендов</p>
-    </div>
-    """,
-    unsafe_allow_html=True
-)
+    # Футер
+    st.markdown("---")
+    st.markdown(
+        """
+        <div style='text-align: center; color: gray;'>
+            <p>TrendScout Dashboard | Создано для визуализации трендов</p>
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
+
+
+# Если запущен напрямую (не через app.py)
+if __name__ == "__main__" or not hasattr(st, 'session_state') or 'page' not in dir():
+    # Настройка страницы для прямого запуска
+    st.set_page_config(
+        page_title="TrendScout Dashboard",
+        page_icon="🔥",
+        layout="wide",
+        initial_sidebar_state="expanded"
+    )
+    show_dashboard()
 

@@ -15,6 +15,7 @@ import praw
 
 from data_collectors.base_collector import BaseCollector
 from config import get_settings, get_vertical_keywords
+from admin.usage_tracker import get_usage_tracker
 
 
 class RedditCollector(BaseCollector):
@@ -120,6 +121,10 @@ class RedditCollector(BaseCollector):
                         cutoff_time = datetime.now() - timedelta(days=2)
                         
                         posts_collected = 0
+                        # Отслеживаем запрос к Reddit API
+                        tracker = get_usage_tracker()
+                        tracker.track_reddit_request()
+                        
                         for submission in subreddit.search(keyword, sort='hot', limit=self.max_posts_per_keyword * 2):  # Берем больше, т.к. будем фильтровать
                             # Пропускаем закрепленные посты
                             if submission.stickied:
