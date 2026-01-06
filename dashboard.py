@@ -23,17 +23,22 @@ from pathlib import Path
 # Добавляем путь к проекту
 sys.path.insert(0, str(Path(__file__).parent))
 
-from data_collectors import GoogleTrendsCollector, TikTokCollector, InstagramCollector, RedditCollector, YouTubeCollector
-from analyzers import DataFilter, AIAnalyzer, TrendScorer, TrendFinder
+from data_collectors import TikTokCollector
+from analyzers import DataFilter, AIAnalyzer, TrendScorer, TrendFinder, ViralContentFilter
 from config import get_settings
 
 
-def show_dashboard():
-    """Показать dashboard страницу"""
-    
-    # Заголовок
-    st.title("🔥 TrendScout - Визуализация трендов")
-    st.markdown("---")
+# Настройка страницы
+st.set_page_config(
+    page_title="TrendScout Dashboard",
+    page_icon="🔥",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
+
+# Заголовок
+st.title("🔥 TrendScout - Визуализация трендов")
+st.markdown("---")
 
 # Боковая панель с настройками
 st.sidebar.header("⚙️ Настройки")
@@ -44,11 +49,6 @@ vertical = st.sidebar.selectbox(
     index=0
 )
 
-location = st.sidebar.text_input(
-    "📍 Локация (опционально):",
-    placeholder="Например: Chicago, IL или US-IL",
-    help="Укажите город и штат для локальных трендов. Примеры: 'Chicago, IL', 'Texas', 'US-NY'"
-)
 
 hours_filter = st.sidebar.selectbox(
     "⏰ Временной диапазон:",
@@ -69,16 +69,12 @@ else:
 
 
 # Функция для запуска пайплайна
-async def run_pipeline_async(vertical: str, use_ai: bool, location: str = None, hours: int = 48):
+async def run_pipeline_async(vertical: str, use_ai: bool, hours: int = 48):
     """Запустить пайплайн и вернуть результаты"""
     
     # 1. Сбор данных
     collectors = [
-        GoogleTrendsCollector(),  # Бесплатно
-        RedditCollector(),        # Бесплатно (требует Reddit API ключи)
-        YouTubeCollector(),       # Бесплатно (требует YouTube API ключ)
-        TikTokCollector(),        # Платно (требует APIFY_API_KEY)
-        InstagramCollector(),     # Платно (требует APIFY_API_KEY)
+        TikTokCollector(),        # Требует APIFY_API_KEY (платно)
     ]
     
     raw_data = []
@@ -87,11 +83,7 @@ async def run_pipeline_async(vertical: str, use_ai: bool, location: str = None, 
     for collector in collectors:
         collector_name = collector.__class__.__name__
         try:
-            # Передаем location только для Google Trends
-            if isinstance(collector, GoogleTrendsCollector):
-                data = await collector.collect(vertical=vertical, location=location)
-            else:
-                data = await collector.collect(vertical=vertical)
+            data = await collector.collect(vertical=vertical)
             raw_data.extend(data)
             collector_status[collector_name] = {
                 'success': True,
@@ -114,6 +106,17 @@ async def run_pipeline_async(vertical: str, use_ai: bool, location: str = None, 
     
     # 2. Фильтрация (с фильтром по дате)
     filtered_data = DataFilter.filter_and_normalize(raw_data, vertical=vertical, hours=hours)
+    
+    # 2.5. Фильтрация трендового контента
+    trending_content = ViralContentFilter.filter_trending_content(
+        filtered_data,
+        vertical=vertical,
+        min_engagement=100,
+        prioritize_viral=True
+    )
+    
+    # Используем трендовый контент для анализа
+    filtered_data = trending_content if trending_content else filtered_data
     
     # 3. Поиск трендов (с AI или без)
     analyzed_data = filtered_data
@@ -167,7 +170,7 @@ if st.session_state.get('run_pipeline', False):
     
     # Запускаем пайплайн
     with st.spinner("Обработка данных..."):
-        results = asyncio.run(run_pipeline_async(vertical, use_ai, location if location else None, hours_filter))
+        results = asyncio.run(run_pipeline_async(vertical, use_ai, hours_filter))
     
     progress_bar.progress(100)
     status_text.text("✅ Готово!")
@@ -500,26 +503,14 @@ else:
     """)
 
 
-    # Футер
-    st.markdown("---")
-    st.markdown(
-        """
-        <div style='text-align: center; color: gray;'>
-            <p>TrendScout Dashboard | Создано для визуализации трендов</p>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
-
-
-# Если запущен напрямую (не через app.py)
-if __name__ == "__main__" or not hasattr(st, 'session_state') or 'page' not in dir():
-    # Настройка страницы для прямого запуска
-    st.set_page_config(
-        page_title="TrendScout Dashboard",
-        page_icon="🔥",
-        layout="wide",
-        initial_sidebar_state="expanded"
-    )
-    show_dashboard()
+# Футер
+st.markdown("---")
+st.markdown(
+    """
+    <div style='text-align: center; color: gray;'>
+        <p>TrendScout Dashboard | Создано для визуализации трендов</p>
+    </div>
+    """,
+    unsafe_allow_html=True
+)
 

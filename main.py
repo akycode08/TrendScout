@@ -8,11 +8,11 @@ import asyncio
 import sys
 from config import get_settings
 from database.db import init_db
-from data_collectors import GoogleTrendsCollector, TikTokCollector, InstagramCollector, RedditCollector, YouTubeCollector
-from analyzers import DataFilter, AIAnalyzer, TrendScorer, TrendFinder
+from data_collectors import TikTokCollector
+from analyzers import DataFilter, AIAnalyzer, TrendScorer, TrendFinder, ViralContentFilter
 
 
-async def run_pipeline(vertical: str = "coffee", location: str = None):
+async def run_pipeline(vertical: str = "coffee"):
     """
     Запустить основной пайплайн TrendScout.
     
@@ -35,21 +35,13 @@ async def run_pipeline(vertical: str = "coffee", location: str = None):
     
     # Коллекторы данных
     collectors = [
-        GoogleTrendsCollector(),  # Бесплатно, без API ключей
-        RedditCollector(),        # Бесплатно, требует Reddit API ключи
-        YouTubeCollector(),       # Бесплатно, требует YouTube API ключ
         TikTokCollector(),        # Требует APIFY_API_KEY (платно)
-        InstagramCollector(),     # Требует APIFY_API_KEY (платно)
     ]
     
     raw_data = []
     for collector in collectors:
         try:
-            # Передаем location только для Google Trends (остальные пока не поддерживают)
-            if isinstance(collector, GoogleTrendsCollector):
-                data = await collector.collect(vertical=vertical, location=location)
-            else:
-                data = await collector.collect(vertical=vertical)
+            data = await collector.collect(vertical=vertical)
             raw_data.extend(data)
         except Exception as e:
             print(f"❌ Ошибка в {collector.__class__.__name__}: {e}")
@@ -68,6 +60,29 @@ async def run_pipeline(vertical: str = "coffee", location: str = None):
         vertical=vertical,
         hours=48  # Последние 48 часов
     )
+    
+    # 2.5. ФИЛЬТРАЦИЯ ТРЕНДОВОГО КОНТЕНТА
+    print("\n🔥 ШАГ 2.5: Поиск трендового контента для бизнеса")
+    print("-" * 60)
+    
+    trending_content = ViralContentFilter.filter_trending_content(
+        filtered_data,
+        vertical=vertical,
+        min_engagement=100,  # Минимум engagement для вирусного контента
+        prioritize_viral=True
+    )
+    
+    print(f"   Найдено трендового контента: {len(trending_content)}")
+    if trending_content:
+        print(f"   Топ-3 по вирусности:")
+        for i, item in enumerate(trending_content[:3], 1):
+            viral_score = item.get('viral_score', 0)
+            views = item.get('views', 0)
+            platform = item.get('platform', 'unknown')
+            print(f"      {i}. {platform}: {views:,} views, viral score: {viral_score:.2f}")
+    
+    # Используем трендовый контент для дальнейшего анализа
+    filtered_data = trending_content if trending_content else filtered_data
     
     # 3. ПОИСК ТРЕНДОВ
     print("\n🔍 ШАГ 3: Поиск и группировка трендов")
@@ -202,7 +217,7 @@ def main():
         
         # Запускаем пайплайн
         print(f"\n🔄 Запуск пайплайна...")
-        results = asyncio.run(run_pipeline(vertical=settings.vertical, location=settings.location))
+        results = asyncio.run(run_pipeline(vertical=settings.vertical))
         
         print(f"\n✅ Готово! Найдено трендов: {len(results)}")
         

@@ -1,0 +1,163 @@
+{
+  "apify": {
+    "total_runs": 10,
+    "total_cost_usd": 0.30000000000000004,
+    "runs_today": 10,
+    "cost_today": 0.30000000000000004,
+    "last_reset": "2026-01-05",
+    "history": [
+      {
+        "timestamp": "2026-01-05T19:07:06.484356",
+        "actor": "clockworks/tiktok-scraper",
+        "cost_usd": 0.03,
+        "items_collected": 50
+      },
+      {
+        "timestamp": "2026-01-05T19:07:23.683013",
+        "actor": "clockworks/tiktok-scraper",
+        "cost_usd": 0.03,
+        "items_collected": 50
+      },
+      {
+        "timestamp": "2026-01-05T19:07:43.808959",
+        "actor": "clockworks/tiktok-scraper",
+        "cost_usd": 0.03,
+        "items_collected": 50
+      },
+      {
+        "timestamp": "2026-01-05T19:08:03.314062",
+        "actor": "clockworks/tiktok-scraper",
+        "cost_usd": 0.03,
+        "items_collected": 50
+      },
+      {
+        "timestamp": "2026-01-05T19:08:36.665887",
+        "actor": "clockworks/tiktok-scraper",
+        "cost_usd": 0.03,
+        "items_collected": 50
+      },
+      {
+        "timestamp": "2026-01-05T19:08:48.357366",
+        "actor": "apify/instagram-scraper",
+        "cost_usd": 0.03,
+        "items_collected": 1
+      },
+      {
+        "timestamp": "2026-01-05T19:08:58.922208",
+        "actor": "apify/instagram-scraper",
+        "cost_usd": 0.03,
+        "items_collected": 1
+      },
+      {
+        "timestamp": "2026-01-05T19:09:10.691611",
+        "actor": "apify/instagram-scraper",
+        "cost_usd": 0.03,
+        "items_collected": 1
+      },
+      {
+        "timestamp": "2026-01-05T19:09:21.720887",
+        "actor": "apify/instagram-scraper",
+        "cost_usd": 0.03,
+        "items_collected": 1
+      },
+      {
+        "timestamp": "2026-01-05T19:09:32.572157",
+        "actor": "apify/instagram-scraper",
+        "cost_usd": 0.03,
+        "items_collected": 1
+      }
+    ]
+  },
+  "claude": {
+    "total_requests": 0,
+    "total_tokens_input": 0,
+    "total_tokens_output": 0,
+    "total_cost_usd": 0.0,
+    "requests_today": 0,
+    "tokens_today": 0,
+    "cost_today": 0.0,
+    "last_reset": "2026-01-05",
+    "history": []
+  },
+  "youtube": {
+    "total_requests": 0,
+    "total_quota_units": 0,
+    "requests_today": 0,
+    "quota_today": 0,
+    "last_reset": "2026-01-05",
+    "history": []
+  },
+  "reddit": {
+    "total_requests": 20,
+    "requests_today": 20,
+    "last_reset": "2026-01-05",
+    "history": [
+      {
+        "timestamp": "2026-01-05T19:06:23.186076"
+      },
+      {
+        "timestamp": "2026-01-05T19:06:23.447959"
+      },
+      {
+        "timestamp": "2026-01-05T19:06:23.624877"
+      },
+      {
+        "timestamp": "2026-01-05T19:06:23.817836"
+      },
+      {
+        "timestamp": "2026-01-05T19:06:24.002740"
+      },
+      {
+        "timestamp": "2026-01-05T19:06:24.187224"
+      },
+      {
+        "timestamp": "2026-01-05T19:06:24.362637"
+      },
+      {
+        "timestamp": "2026-01-05T19:06:24.552181"
+      },
+      {
+        "timestamp": "2026-01-05T19:06:24.720824"
+      },
+      {
+        "timestamp": "2026-01-05T19:06:24.911019"
+      },
+      {
+        "timestamp": "2026-01-05T19:06:25.082040"
+      },
+      {
+        "timestamp": "2026-01-05T19:06:25.249101"
+      },
+      {
+        "timestamp": "2026-01-05T19:06:25.446570"
+      },
+      {
+        "timestamp": "2026-01-05T19:06:25.646509"
+      },
+      {
+        "timestamp": "2026-01-05T19:06:25.822609"
+      },
+      {
+        "timestamp": "2026-01-05T19:06:26.026054"
+      },
+      {
+        "timestamp": "2026-01-05T19:06:26.199876"
+      },
+      {
+        "timestamp": "2026-01-05T19:06:26.396713"
+      },
+      {
+        "timestamp": "2026-01-05T19:06:26.585459"
+      },
+      {
+        "timestamp": "2026-01-05T19:06:26.763899"
+      }
+    ]
+  },
+  "google_trends": {
+    "total_requests": 0,
+    "requests_today": 0,
+    "last_reset": "2026-01-05",
+    "history": []
+  }
+}
